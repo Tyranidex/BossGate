@@ -71,5 +71,4 @@ Common options:
 
 ## License
 
-Choose a license (MIT is common for mods).  
-Add a `LICENSE` file if you want to make it explicit.
+MIT
