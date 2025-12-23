@@ -69,6 +69,16 @@ Common options:
 - BepInEx: **5.x**
 - Language level: **C# 7.3**
 
+## TO DO
+
+- Better UI ?
+- Mistlands Boss fix
+
+## Known Bugs
+
+- Mistlands Boss door can still be opened and can softlock the arena.
+- Fix / workaround: Use a Seeker Soldier Trophy to spawn the boss.
+
 ## License
 
 MIT
