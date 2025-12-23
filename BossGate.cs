@@ -3,7 +3,9 @@
 // - Blocks boss spawns server-side using robust OfferingBowl RPC interception
 // - Optional: blocks Sealbreaker door (Queen access) until enabled
 // - Simple admin UI (checkboxes) toggled with F7, no server restart needed
+// - Uses a custom config file name: BepInEx/config/bossgate.cfg
 //
+// Texts + comments intentionally in English as requested.
 
 using BepInEx;
 using BepInEx.Configuration;
@@ -13,6 +15,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.IO;
 using UnityEngine;
 
 namespace BossGate
@@ -22,10 +25,13 @@ namespace BossGate
     {
         public const string ModGUID = "com.yourname.bossgate";
         public const string ModName = "BossGate";
-        public const string ModVersion = "1.0.4"; // IMPORTANT: digits + dots only (BepInEx requirement)
+        public const string ModVersion = "1.0.5"; // digits + dots only (BepInEx requirement)
 
         internal static BossGatePlugin Instance;
         internal static Harmony Harmony;
+
+        // Custom config file (bossgate.cfg)
+        private ConfigFile _customConfig;
 
         private static ConfigEntry<string> _toggleKey;
         private static ConfigEntry<string> _blockedMessage;
@@ -46,14 +52,17 @@ namespace BossGate
         {
             Instance = this;
 
-            _toggleKey = Config.Bind("UI", "ToggleKey", "F7", "Key to toggle the admin UI window.");
-            _blockedMessage = Config.Bind("Messages", "BlockedMessage", "The boss is still deeply asleep.", "Message shown when a boss spawn is blocked.");
-            _alsoShowCenterMessage = Config.Bind("Messages", "AlsoShowCenterMessage", true, "Also show the message as a center-screen message (in addition to chat).");
-            _loadedMessage = Config.Bind("Messages", "LoadedMessage", "BossGate loaded.", "Shown when the plugin is loaded (local) and optionally announced to joiners (server).");
-            _announceOnJoin = Config.Bind("Messages", "AnnounceToJoiners", true, "If true, server announces BossGate loaded when players join.");
+            // Create a custom-named config file like "server_devcommands.cfg" style mods.
+            _customConfig = new ConfigFile(Path.Combine(Paths.ConfigPath, "bossgate.cfg"), true);
 
-            _blockUnknownBosses = Config.Bind("Safety", "BlockUnknownBosses", true, "If the boss id cannot be resolved, block anyway (safer).");
-            _blockSealbreakerDoorWhenQueenDisabled = Config.Bind("Queen", "BlockSealbreakerDoorWhenQueenDisabled", true, "Block Sealbreaker door usage until Queen is enabled.");
+            _toggleKey = _customConfig.Bind("UI", "ToggleKey", "F7", "Key to toggle the admin UI window.");
+            _blockedMessage = _customConfig.Bind("Messages", "BlockedMessage", "The boss is still deeply asleep.", "Message shown when a boss spawn is blocked. You can use {boss} placeholder.");
+            _alsoShowCenterMessage = _customConfig.Bind("Messages", "AlsoShowCenterMessage", true, "Also show the message as a center-screen message (in addition to chat).");
+            _loadedMessage = _customConfig.Bind("Messages", "LoadedMessage", "BossGate loaded.", "Shown locally when the plugin is loaded and optionally announced to joiners (server).");
+            _announceOnJoin = _customConfig.Bind("Messages", "AnnounceToJoiners", true, "If true, server announces BossGate loaded when players join.");
+
+            _blockUnknownBosses = _customConfig.Bind("Safety", "BlockUnknownBosses", true, "If the boss id cannot be resolved, block anyway (safer).");
+            _blockSealbreakerDoorWhenQueenDisabled = _customConfig.Bind("Queen", "BlockSealbreakerDoorWhenQueenDisabled", true, "Block Sealbreaker door usage until Queen is enabled.");
 
             ParseHotkey(_toggleKey.Value);
 
@@ -61,13 +70,15 @@ namespace BossGate
             Harmony.PatchAll();
 
             LogInfo(ModName + " " + ModVersion + " loaded");
-
-            // Local confirmation message (if running on a client with HUD).
             StartCoroutine(ShowLocalLoadedMessage());
         }
 
         private IEnumerator ShowLocalLoadedMessage()
         {
+            // Dedicated servers typically run in batchmode and have no HUD.
+            if (Application.isBatchMode)
+                yield break;
+
             while (MessageHud.instance == null)
                 yield return null;
 
