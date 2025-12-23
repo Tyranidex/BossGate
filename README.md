@@ -49,7 +49,7 @@ Boss availability is stored as **world global keys**, so it persists with the wo
 ## Configuration
 
 A config file will be generated after first launch:
-- `BepInEx/config/com.yourname.bossgate.cfg`
+- `BepInEx/config/bossgate.cfg`
 
 Common options:
 - UI toggle key (default: `F7`)
