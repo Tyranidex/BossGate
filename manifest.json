@@ -1,0 +1,9 @@
+﻿{
+  "name": "BossGate",
+  "version_number": "1.0.1",
+  "website_url": "https://github.com/Tyranidex/BossGate/",
+  "description": "Server-side boss summon gating for Valheim. All bosses are blocked by default; admins can enable/disable bosses in-game (no restart). Shows a message when blocked. Optional Sealbreaker gate for the Queen.",
+  "dependencies": [
+    "denikson-BepInExPack_Valheim-5.4.2202"
+  ]
+}
