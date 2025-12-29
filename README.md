@@ -1,3 +1,6 @@
+# MOD ISN'T WORKING WELL, IM ON IT BUT THAT DOESNT LOOK GOOD :(
+
+
 # BossGate
 
 BossGate is a lightweight Valheim mod that lets admins **enable/disable boss summons per world**.  
